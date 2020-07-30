@@ -8,4 +8,4 @@ This repository is used to provide an out-of-box base code for PyTorch-based tra
 2: A UNet-based denoising example is used a demo, where the AAPM LowDose CT Challenge dataset is used. 
 
 
-3: Didn't pay too much efforts on the model part since this is user-specific.
+3: Didn't make too much efforts on the model part since this is user-specific.
