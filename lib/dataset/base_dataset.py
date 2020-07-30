@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 # AUTHOR: Ti Bai
 # EMAIL: tibaiw@gmail.com
-# AFFILIATION: MIAI Lab | UT Southwestern Medical Center
+# AFFILIATION: MAIA Lab | UT Southwestern Medical Center
 # DATETIME: 1/17/2020 11:30 AM
 
 # torch
