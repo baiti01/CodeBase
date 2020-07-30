@@ -1,0 +1,70 @@
+AUTO_RESUME: True
+WORKERS: 8
+OUTPUT_DIR: 'output'
+LOG_DIR: 'log'
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+
+DATASET:
+  NAME: 'AAPMLowDose'
+  ROOT: 'D:\share\data\Challenge\LowDoseChanllenge\numpy'
+  TRAIN_LIST: 'train.list'
+  VAL_LIST: 'val.list'
+  TEST_LIST: 'val.list'
+
+MODEL:
+  NAME: 'BaseLine'
+  GENERATOR:
+    NAME: 'UNet'
+    INPUT_CHANNELS: 1
+    OUTPUT_CHANNELS: 1
+    DOWNSAMPLING_NUMBER: 9
+    FILTER_NUMBER_LAST_CONV_LAYER: 64
+    DIMENSION: '2d'
+    INPUT_SIZE:
+      - 512
+      - 512
+    SHIFT_SIZE:
+      - 16
+      - 16
+    NORMALIZATION_TYPE: 'instance'
+
+CRITERION:
+  PIXEL_WISE_LOSS_TYPE: 'mse'
+
+TRAIN:
+  BATCHSIZE_PER_GPU: 1
+  TOTAL_ITERATION: 2e5
+  PRINT_FREQUENCY: 1.0
+  DISPLAY_FREQUENCY: 1000
+  CHECKPOINT: ''
+  OPTIMIZER: adam
+
+  # learning rate policy
+  LR_POLICY: 'MultiStepLR'
+  LR_FACTOR: 0.1
+  LR_STEP:
+    - 100000
+    - 150000
+  GENERATOR:
+    LR: 1e-4
+
+  # for adam
+  GAMMA1: 0.9
+  GAMMA2: 0.999
+
+VAL:
+  BATCHSIZE_PER_GPU: 1
+  EVALUATION_FREQUENCY: 1000
+  PRINT_FREQUENCY: 1.0
+  SHUFFLE: false
+  MODEL_FILE: ''
+
+TEST:
+  BATCHSIZE_PER_GPU: 1
+  IS_VOLUME_VISUALIZER: True
+  SHUFFLE: false
+  MODEL_FILE: ''
