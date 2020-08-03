@@ -6,7 +6,7 @@
 # sys
 from yacs.config import CfgNode as CN
 from lib.config.generator_config import GENERATOR_CONFIGS
-from lib.config.discriminator_config import DISCRIMINATOR_CONFIGS
+from lib.config.discriminator_config import DISCRIMINATOR_CONFIGS, discriminator_dict
 import yaml
 
 _C = CN()
@@ -17,6 +17,7 @@ _C.WORKERS = 4
 _C.PIN_MEMORY = True
 _C.OUTPUT_DIR = 'OUTPUT'
 _C.LOG_DIR = 'LOG'
+_C.IS_VISUALIZE = True
 
 # CUDNN related params
 _C.CUDNN = CN()
@@ -25,7 +26,7 @@ _C.CUDNN.DETERMINISTIC = False
 _C.CUDNN.ENABLED = True
 
 # common parameters for network
-_C.MODEL = CN()
+_C.MODEL = CN(new_allowed=True)
 _C.MODEL.NAME = ''
 
 # generator
@@ -37,16 +38,18 @@ _C.MODEL.DISCRIMINATOR = CN(new_allowed=True)
 _C.MODEL.DISCRIMINATOR.PRETRAINED = ''
 
 # dataset
-_C.DATASET = CN()
+_C.DATASET = CN(new_allowed=True)
 _C.DATASET.NAME = ''
 _C.DATASET.ROOT = ''
 _C.DATASET.TRAIN_LIST = 'train.list'
 _C.DATASET.VAL_LIST = 'val.list'
 _C.DATASET.TEST_LIST = 'test.list'
 
+
 # loss
 _C.CRITERION = CN()
 _C.CRITERION.PIXEL_WISE_LOSS_TYPE = 'mse'
+_C.CRITERION.DISCRIMINATOR_LOSS_TYPE = 'ce'
 _C.CRITERION.EXTRA = CN(new_allowed=True)
 
 # train
@@ -109,7 +112,8 @@ def update_config(cfg, args):
             cfg.MODEL.GENERATOR = GENERATOR_CONFIGS[generator_name.upper()]
         if 'DISCRIMINATOR' in config_params['MODEL']:
             discriminator_name = config_params['MODEL']['DISCRIMINATOR']['NAME']
-            cfg.MODEL.DISCRIMINATOR = DISCRIMINATOR_CONFIGS[discriminator_name.upper()]
+            if discriminator_name not in discriminator_dict:
+                cfg.MODEL.DISCRIMINATOR = DISCRIMINATOR_CONFIGS[discriminator_name.upper()]
 
     cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)

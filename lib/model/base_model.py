@@ -14,6 +14,7 @@ import torch.nn as nn
 
 # project
 from lib.model.utils.utils import get_scheduler
+from lib.utils.utils import AverageMeter
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class BaseModel(nn.Module):
     def __init__(self, is_train=True):
         super(BaseModel, self).__init__()
         self.is_train = is_train
+        self.losses_train = AverageMeter()
 
     def _create_optimize_engine(self, optimizer_option, criterion_option, scheduler_option):
         self.optimizers = []
@@ -58,15 +60,26 @@ class BaseModel(nn.Module):
                 raise NotImplementedError(
                     'Optimizer type {} is not implemented yet!'.format(optimizer_option.optimizer))
 
-            if criterion_option.pixel_wise_loss_type == 'mse':
-                self.criterion_pixel_wise_loss = torch.nn.MSELoss()
-            elif criterion_option.pixel_wise_loss_type == 'L1':
-                self.criterion_pixel_wise_loss = torch.nn.L1Loss()
-            else:
-                raise "Loss type {} is not implemented yet!".format(criterion_option.pixle_wise_loss_type)
+            if hasattr(criterion_option, 'pixel_wise_loss_type'):
+                if criterion_option.pixel_wise_loss_type == 'mse':
+                    self.criterion_pixel_wise_loss = torch.nn.MSELoss()
+                elif criterion_option.pixel_wise_loss_type == 'L1':
+                    self.criterion_pixel_wise_loss = torch.nn.L1Loss()
+                else:
+                    raise "Loss type {} is not implemented yet!".format(criterion_option.pixle_wise_loss_type)
 
-            if torch.cuda.is_available():
-                self.criterion_pixel_wise_loss = self.criterion_pixel_wise_loss.cuda()
+                if torch.cuda.is_available():
+                    self.criterion_pixel_wise_loss = self.criterion_pixel_wise_loss.cuda()
+
+            if hasattr(criterion_option, 'discriminator_loss_type'):
+                if criterion_option.discriminator_loss_type == 'ce':
+                    self.discriminator_loss = torch.nn.CrossEntropyLoss()
+                elif criterion_option.classification_loss_type == 'bce':
+                    self.discriminator_loss = torch.nn.BCEWithLogitsLoss()
+                else:
+                    raise "Loss type {} is not implemented yet!".format(criterion_option.discriminator_loss_type)
+                if torch.cuda.is_available():
+                    self.discriminator_loss = self.discriminator_loss.cuda()
 
             self.scheduler_option = scheduler_option
 
@@ -138,3 +151,44 @@ class BaseModel(nn.Module):
 
     def optimize_parameters(self):
         pass
+
+    def record_information(self, current_iteration=None, data_loader_size=None, batch_time=None, data_time=None,
+                           indicator_dict=None, writer_dict=None, phase='train'):
+        writer = writer_dict['writer']
+        if phase == 'train':
+            self.losses_train.update(self.loss.item())
+            indicator_dict['current_iteration'] += 1
+            global_steps = writer_dict['train_global_steps']
+            writer.add_scalar('train_loss', self.loss.item(), global_steps)
+            writer_dict['train_global_steps'] = global_steps + 1
+            if current_iteration % self.cfg.TRAIN.PRINT_FREQUENCY == 0:
+                msg = 'Iteration: [{0}/{1}]\t' \
+                      'Time {batch_time.val:.3f}s ({batch_time.avg:.3f}s)\t' \
+                      'Data {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
+                      'LR: {LR:.6f}\t' \
+                      'Loss {losses.val:.5f} ({losses.avg:.5f})'.format(
+                    current_iteration, data_loader_size,
+                    batch_time=batch_time,
+                    data_time=data_time,
+                    LR=self.schedulers[0].get_last_lr()[0],
+                    losses=self.losses_train)
+        elif phase == 'val':
+            if current_iteration == 0:
+                self.losses_val = AverageMeter()
+            self.losses_val.update(self.loss.item())
+
+            if current_iteration == data_loader_size - 1:
+                global_steps = writer_dict['val_global_steps']
+                writer.add_scalar('val_loss', self.loss, global_steps)
+                writer_dict['val_global_steps'] = global_steps + 1
+
+            if current_iteration % self.cfg.VAL.PRINT_FREQUENCY == 0:
+                msg = 'Val: [{0}/{1}]\t' \
+                      'Loss {losses.val:.5f} ({losses.avg:.5f})'.format(
+                    current_iteration, data_loader_size,
+                    losses=self.losses_val)
+        else:
+            raise ValueError('Unknown operation in information recording!')
+        logger.info(msg)
+        return self.losses_val.avg
+

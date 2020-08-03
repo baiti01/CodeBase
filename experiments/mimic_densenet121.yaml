@@ -1,0 +1,71 @@
+AUTO_RESUME: True
+WORKERS: 4
+OUTPUT_DIR: 'output'
+LOG_DIR: 'log'
+IS_VISUALIZE: false
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+
+DATASET:
+  NAME: 'MIMIC'
+  ROOT: 'D:\share\data\Challenge\XRay\mimic\x-ray\images\preprocess'
+  TRAIN_LIST: 'train_80.csv'
+  VAL_LIST: 'test.csv'
+  TEST_LIST: 'val_20.csv'
+
+  PIXEL_MEAN: 128.0
+  PIXEL_STD: 64.0
+  LONG_SIDE: 256
+  BORDER_TYPE: 'pixel_mean'
+  GAUSSIAN_BLUR: 3
+  DISEASE_NUMBER: 14
+
+MODEL:
+  NAME: 'ClassificationBaseLine'
+  IS_IMAGENET_PRETRAIN: False
+  PRETRAIN_PATH: 'pretrain_models/resnet50-19c8e357.pth'
+  DIMENSION: '2d'
+  NUM_CLASSES: 2
+  UNSURE_LABEL: 1
+  IGNORE_CLASS: 100
+  DISCRIMINATOR:
+    NAME: 'densenet121'
+
+
+CRITERION:
+  DISCRIMINATOR_LOSS_TYPE: 'ce'
+
+TRAIN:
+  BATCHSIZE_PER_GPU: 1
+  TOTAL_ITERATION: 1e5
+  PRINT_FREQUENCY: 1.0
+  CHECKPOINT: ''
+  OPTIMIZER: adam
+
+  # learning rate policy
+  LR_POLICY: 'MultiStepLR'
+  LR_FACTOR: 0.1
+  LR_STEP:
+    - 100000
+    - 150000
+  DISCRIMINATOR:
+    LR: 1e-4
+
+  # for adam
+  GAMMA1: 0.9
+  GAMMA2: 0.999
+
+VAL:
+  BATCHSIZE_PER_GPU: 4
+  EVALUATION_FREQUENCY: 500
+  PRINT_FREQUENCY: 1.0
+  SHUFFLE: false
+  MODEL_FILE: ''
+
+TEST:
+  BATCHSIZE_PER_GPU: 4
+  SHUFFLE: false
+  MODEL_FILE: ''

@@ -5,7 +5,18 @@
 # AFFILIATION: MAIA Lab | UT Southwestern Medical Center
 # DATETIME: 7/20/2020 11:10 PM
 
+# sys
 from yacs.config import CfgNode as CN
+
+# torch
+import torchvision.models as models
+
+discriminator_dict = {'mobilenet_v2': models.mobilenet_v2,
+                      'resnet50': models.resnet50,
+                      'densenet121': models.densenet121,
+                      'resnext50_32x4d': models.resnext50_32x4d,
+                      'inception_v3': models.inception_v3,
+                      'resnext101_32x8d': models.resnext101_32x8d}
 
 BASIC = CN()
 BASIC.NAME = 'basic'

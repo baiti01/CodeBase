@@ -25,7 +25,7 @@ import lib.model as model
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Deep Dose Plugin")
-    parser.add_argument('--cfg', default=r'experiments\UNet.yaml', type=str)
+    parser.add_argument('--cfg', default=r'experiments\mimic_densenet121.yaml', type=str)
     parser.add_argument('output_dir', default=None, type=str, nargs='?')
     parser.add_argument('log_dir', default=None, type=str, nargs='?')
     parser.add_argument('data_root', default=None, type=str, nargs='?')
@@ -59,8 +59,10 @@ def main():
     model.setup(cfg)
 
     # visualize function
-    visualize_module = importlib.import_module(r'lib.analyze.visualize_{}'.format(cfg.MODEL.NAME))
-    visualize_function = getattr(visualize_module, 'visualize')
+    visualize_function = None
+    if cfg.IS_VISUALIZE:
+        visualize_module = importlib.import_module(r'lib.analyze.visualize_{}'.format(cfg.MODEL.NAME))
+        visualize_function = getattr(visualize_module, 'visualize')
 
     # setup the iteration indicator
     writer_dict = {

@@ -63,7 +63,7 @@ def do_train(train_loader,
         model.optimize_parameters()
 
         # visualize
-        if indicator_dict['current_iteration'] % cfg.TRAIN.DISPLAY_FREQUENCY == 0:
+        if indicator_dict['current_iteration'] % cfg.TRAIN.DISPLAY_FREQUENCY == 0 and cfg.IS_VISUALIZE:
             visualize(model,
                       indicator_dict['current_iteration'],
                       os.path.join(final_output_dir, "train"),

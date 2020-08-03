@@ -16,7 +16,7 @@ DATASET:
   TEST_LIST: 'val.list'
 
 MODEL:
-  NAME: 'BaseLine'
+  NAME: 'DensePredictionBaseLine'
   GENERATOR:
     NAME: 'UNet'
     INPUT_CHANNELS: 1

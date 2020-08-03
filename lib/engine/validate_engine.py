@@ -44,7 +44,7 @@ def do_validate(val_loader,
                                                data_loader_size=len(val_loader),
                                                writer_dict=writer_dict,
                                                phase='val')
-        if i == selected_visualized_data:
+        if i == selected_visualized_data and cfg.IS_VISUALIZE:
             visualize(model,
                       writer_dict['val_global_steps'],
                       os.path.join(final_output_dir, "val"),

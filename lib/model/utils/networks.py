@@ -7,6 +7,7 @@
 
 # torch
 import torch
+import torchvision.models as models
 
 # project
 from lib.model.utils.utils import network_initialization
@@ -57,31 +58,26 @@ def define_generator(generator_config):
     return network
 
 
-def define_discriminator(input_channels,
-                         filter_number_first_conv_layer,
-                         network_name,
-                         number_conv_layers=3,
-                         norm='batch',
-                         dimension='2d',
-                         init_type='normal',
-                         init_gain=0.02):
-    norm_layer = get_norm_layer(norm_type=norm)
-
-    if network_name == 'basic':  # default PatchGAN classifier
+def define_discriminator(discriminator_cfg):
+    discriminator_name = discriminator_cfg.NAME
+    from lib.config.discriminator_config import discriminator_dict
+    if discriminator_name in discriminator_dict:
+        network = discriminator_dict[discriminator_name](num_classes=discriminator_cfg.num_classes)
+    elif discriminator_name == 'basic':  # default PatchGAN classifier
         from lib.model.discriminator.NLayer_discriminator import NLayerDiscriminator
         net = NLayerDiscriminator(input_channels,
                                   dimension,
                                   filter_number_first_conv_layer,
                                   number_conv_layers=3,
                                   norm_layer=norm_layer)
-    elif network_name == 'n_layers':  # more options
+    elif discriminator_name == 'n_layers':  # more options
         from lib.model.discriminator.NLayer_discriminator import NLayerDiscriminator
         net = NLayerDiscriminator(input_channels,
                                   dimension,
                                   filter_number_first_conv_layer,
                                   number_conv_layers,
                                   norm_layer=norm_layer)
-    elif network_name == 'pixel':  # classify if each pixel is real or fake
+    elif discriminator_name == 'pixel':  # classify if each pixel is real or fake
         from lib.model.discriminator.pixel_discriminator import PixelDiscriminator
         net = PixelDiscriminator(input_channels,
                                  dimension,
@@ -89,7 +85,8 @@ def define_discriminator(input_channels,
                                  norm_layer=norm_layer)
     else:
         raise NotImplementedError('Discriminator loss name {} is not recognized'.format(network_name))
-    return network_initialization(net, init_type, init_gain)
+
+    return  network
 
 
 if __name__ == '__main__':
