@@ -19,7 +19,6 @@ import torch.nn as nn
 import torch._utils
 import torch.nn.functional as F
 
-#BatchNorm2d = nn.BatchNorm2d
 BatchNorm2d = nn.InstanceNorm2d
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
@@ -259,8 +258,8 @@ blocks_dict = {
 
 class HighResolutionNet(nn.Module):
 
-    def __init__(self, config, output_activation_layer=nn.Tanh):
-        extra = config.MODEL.GENERATOR.EXTRA
+    def __init__(self, config, output_activation_layer=nn.ReLU):
+        extra = config.EXTRA
         super(HighResolutionNet, self).__init__()
 
         # stem net
@@ -322,7 +321,7 @@ class HighResolutionNet(nn.Module):
             nn.ReLU(inplace=False),
             nn.Conv2d(
                 in_channels=last_inp_channels,
-                out_channels=config.MODEL.GENERATOR.OUTPUT_CHANNELS,
+                out_channels=config.OUTPUT_CHANNELS,
                 kernel_size=extra.FINAL_CONV_KERNEL,
                 stride=1,
                 padding=1 if extra.FINAL_CONV_KERNEL == 3 else 0),

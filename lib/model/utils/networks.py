@@ -2,12 +2,11 @@
 # -*- coding:utf-8 -*-
 # AUTHOR: Ti Bai
 # EMAIL: tibaiw@gmail.com
-# AFFILIATION: MIAI Lab | UT Southwestern Medical Center
+# AFFILIATION: MAIA Lab | UT Southwestern Medical Center
 # DATETIME: 12/18/2019 2:27 PM
 
 # torch
 import torch
-import torchvision.models as models
 
 # project
 from lib.model.utils.utils import network_initialization
@@ -16,7 +15,7 @@ from lib.model.utils.utils import network_initialization
 def define_generator(generator_config):
     generator_name = generator_config.NAME
     if 'unet' in generator_name.lower():
-        from lib.model.generator.unet_generator import UnetGenerator
+        from lib.model.generator.unet import UnetGenerator
         network = UnetGenerator(input_channels=generator_config.INPUT_CHANNELS,
                                 output_channels=generator_config.OUTPUT_CHANNELS,
                                 downsampling_number=generator_config.DOWNSAMPLING_NUMBER,
@@ -28,33 +27,20 @@ def define_generator(generator_config):
                                          init_type=generator_config.INIT_TYPE,
                                          init_gain=generator_config.INIT_GAIN)
     elif 'plain' in generator_name.lower():
-        from lib.model.generator.plain_generator import PlainGenerator
-        network = PlainGenerator(input_channels,
-                                 output_channels,
-                                 is_weight_standardization=is_weight_standardization,
-                                 num_filters=filter_number_last_conv_layer,
-                                 norm_layer=norm_layer,
-                                 output_activation_layer=output_activation_layer)
+        from lib.model.generator.plainnet import PlainNet
+        network = PlainNet(input_channels=generator_config.INPUT_CHANNELS,
+                           output_channels=generator_config.OUTPUT_CHANNELS,
+                           layer_number=generator_config.LAYER_NUMBER,
+                           channel_number=generator_config.CHANNEL_NUMBER,
+                           norm_type=generator_config.NORMALIZATION_TYPE)
     elif 'hrnet' in generator_name.lower():
-        from lib.model.generator.hr_generator_basic import HighResolutionNet
-        network = HighResolutionNet(cfg,
-                                    is_weight_standardization=is_weight_standardization,
-                                    output_activation_layer=output_activation_layer)
+        from lib.model.generator.hrnet import HighResolutionNet
+        network = HighResolutionNet(generator_config)
         network.init_weights()
-    elif 'm3net' in generator_name.lower():
-        from lib.model.generator.M3Net import DoseNet
-        network = DoseNet(input_channels=generator_config.INPUT_CHANNELS,
-                          feature_channels=generator_config.FEATURE_CHANNELS,
-                          layer_numbers=generator_config.LAYER_NUMBERS,
-                          prediction_head_channels=generator_config.PREDICTION_HEAD_CHANNELS,
-                          scale_dimension=generator_config.SCALE_DIMENSION,
-                          input_dimension=generator_config.INPUT_SIZE)
-        network = network_initialization(network,
-                                         init_type=generator_config.INIT_TYPE,
-                                         init_gain=generator_config.INIT_GAIN)
     else:
         raise('Unsupported network: {}'.format(generator_name))
-
+    if torch.cuda.is_available():
+        network = torch.nn.DataParallel(network)
     return network
 
 
@@ -86,7 +72,7 @@ def define_discriminator(discriminator_cfg):
     else:
         raise NotImplementedError('Discriminator loss name {} is not recognized'.format(network_name))
 
-    return  network
+    return network
 
 
 if __name__ == '__main__':

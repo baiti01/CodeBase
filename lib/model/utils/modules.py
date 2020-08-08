@@ -45,8 +45,10 @@ def pixel_shuffle(input, upscale_factor=2):
     return shuffle_out.view(input_size[0], input_size[1], *output_size)
 
 
-def conv_bn_relu(in_channels, out_channels, kernel_size=3, stride=1, dilation=1, groups=1,
-                 norm_type='batch', is_bias=False, is_3d=True, is_depthwise=False):
+def conv_bn_relu(in_channels, out_channels,
+                 kernel_size=3, stride=1, dilation=1, groups=1,
+                 norm_type='batch', is_norm=True, is_relu=True,
+                 is_bias=False, is_3d=True, is_depthwise=False):
     conv_module = []
     padding = int((kernel_size - 1) / 2)
     if is_3d:
@@ -72,8 +74,11 @@ def conv_bn_relu(in_channels, out_channels, kernel_size=3, stride=1, dilation=1,
         conv_module.append(
             conv(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias=is_bias))
 
-    conv_module.append(norm(out_channels))
-    conv_module.append(nn.ReLU(inplace=True))
+    if is_norm:
+        conv_module.append(norm(out_channels))
+
+    if is_relu:
+        conv_module.append(nn.ReLU(inplace=True))
 
     return nn.Sequential(*conv_module)
 

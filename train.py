@@ -61,7 +61,12 @@ def main():
     # visualize function
     visualize_function = None
     if cfg.IS_VISUALIZE:
-        visualize_module = importlib.import_module(r'lib.analyze.visualize_{}'.format(cfg.MODEL.NAME))
+        try:
+            visualize_module = importlib.import_module(r'lib.analyze.visualize_{}'.format(cfg.MODEL.NAME))
+        except:
+            logger.info('Cannot find visualize function: visualize_{}! Using the default function!'.format(cfg.MODEL.NAME))
+            visualize_module = importlib.import_module(r'lib.analyze.visualize_Default')
+
         visualize_function = getattr(visualize_module, 'visualize')
 
     # setup the iteration indicator
