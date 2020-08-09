@@ -6,9 +6,11 @@
 # DATETIME: 12/30/2019 6:04 PM
 
 # sys
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 
 # project
 from lib.analyze import html
