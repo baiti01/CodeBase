@@ -31,7 +31,7 @@ import lib.model as model
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Image to image translation")
-    parser.add_argument('--cfg', default=r'experiments\AAPMLowDose_LightWeight.yaml', type=str)
+    parser.add_argument('--cfg', default=r'experiments\AAPMLowDose.yaml', type=str)
     parser.add_argument('output_dir', default=None, type=str, nargs='?')
     parser.add_argument('log_dir', default=None, type=str, nargs='?')
     parser.add_argument('data_root', default=None, type=str, nargs='?')
