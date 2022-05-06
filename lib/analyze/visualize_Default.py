@@ -39,15 +39,14 @@ def visualize(model,
 
         image_numpy = visualizer.tensor2image(current_image_tensor, scale, shift)
         img_path = 'iter_{:>08}_{}'.format(iteration, current_image_name)
-        #image_numpy.tofile(os.path.join(output_dir, 'web', 'images', img_path))
         visualizer.save_image(image_numpy, os.path.join(output_dir, 'web', 'images', img_path), min_v, max_v, cmap='gray')
 
     for n in range(iteration, -1, -display_frequency):
         webpage.add_header('iteration_{:>08}'.format(n))
         ims, txts, links = [], [], []
         for current_image_name in model.visualized_images:
-            #for postfix in ['_c.png', '_t.png', '_s.png']:
-            for postfix in ['.png']:
+            for postfix in ['_c.png', '_t.png', '_s.png']:
+            #for postfix in ['.png']:
                 img_path = 'iter_{:>08}_{}{}'.format(n, current_image_name, postfix)
                 ims.append(img_path)
                 txts.append(current_image_name)

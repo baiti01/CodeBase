@@ -1,0 +1,94 @@
+AUTO_RESUME: True
+WORKERS: 0
+OUTPUT_DIR: 'output'
+IS_VISUALIZE: true
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+
+DATASET:
+  NAME: 'AAPMLowDose'
+  ROOT: 'D:\data\1_Challenge\LowDoseChanllenge\Train\sharps'
+  #ROOT: './data'
+  TRAIN_LIST: 'train.txt'
+  VAL_LIST: 'val.txt'
+  TEST_LIST: 'val.txt'
+  TARGET_SIZE:
+    - 64
+    - 256
+    - 256
+  RESOLUTION:
+    - 3.0
+    - 1.17
+    - 1.17
+
+  DATA_AUGMENTATION_PROB: 1.0
+  ROTATION_DEGREE_ANGLE_ZYX:
+    - 9
+    - 0.0
+    - 0.0
+  SHEAR_RANGE_ZYX:
+    - 0
+    - 0
+    - 0.1
+    - 0.1
+    - 0.1
+    - 0.1
+  SCALE_RANGE_ZYX:
+    - 0
+    - 0.2
+    - 0.2
+  TRANSLATION_RANGE_ZYX:
+    - 0
+    - 32
+    - 32
+
+MODEL:
+  NAME: 'DensePredictionBaseLine'
+  GENERATOR:
+    NAME: 'lightweight_UNet'
+    DIMENSION: '3d'
+    INPUT_CHANNELS: 8
+    OUTPUT_CHANNELS: 8
+    DOWNSAMPLING_NUMBER: 5
+    FILTER_NUMBER_LAST_CONV_LAYER: 64
+    NORM_LAYER: 'instance'
+
+CRITERION:
+  PIXEL_WISE_LOSS_TYPE: 'mse'
+
+TRAIN:
+  BATCHSIZE_PER_GPU: 1
+  TOTAL_ITERATION: 1e5
+  PRINT_FREQUENCY: 1.0
+  DISPLAY_FREQUENCY: 1000
+  CHECKPOINT: ''
+  OPTIMIZER: adam
+
+  # learning rate policy
+  LR_POLICY: 'MultiStepLR'
+  LR_FACTOR: 0.1
+  LR_STEP:
+    - 50000
+    - 75000
+  GENERATOR:
+    LR: 3e-4
+
+  # for adam
+  GAMMA1: 0.9
+  GAMMA2: 0.999
+
+VAL:
+  BATCHSIZE_PER_GPU: 1
+  EVALUATION_FREQUENCY: 1000
+  PRINT_FREQUENCY: 1.0
+  SHUFFLE: false
+  MODEL_FILE: ''
+
+TEST:
+  BATCHSIZE_PER_GPU: 1
+  IS_VOLUME_VISUALIZER: True
+  SHUFFLE: false
+  MODEL_FILE: ''

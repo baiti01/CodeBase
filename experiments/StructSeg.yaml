@@ -1,0 +1,94 @@
+AUTO_RESUME: True
+WORKERS: 0
+OUTPUT_DIR: 'output'
+IS_VISUALIZE: false
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+
+DATASET:
+  NAME: 'StructSeg'
+  ROOT: 'D:\data\1_Challenge\StructSeg-HN-CT-OAR-GTV\Task1_HaN_OAR\HaN_OAR'
+  #ROOT: './data'
+  TRAIN_LIST: 'train.txt'
+  VAL_LIST: 'test.txt'
+  TEST_LIST: 'test.txt'
+  TARGET_SIZE:
+    - 128
+    - 256
+    - 256
+  RESOLUTION:
+    - 2.5
+    - 1.17
+    - 1.17
+
+  DATA_AUGMENTATION_PROB: 1.0
+  ROTATION_DEGREE_ANGLE_ZYX:
+    - 9
+    - 0.0
+    - 0.0
+  SHEAR_RANGE_ZYX:
+    - 0
+    - 0
+    - 0.1
+    - 0.1
+    - 0.1
+    - 0.1
+  SCALE_RANGE_ZYX:
+    - 0
+    - 0.2
+    - 0.2
+  TRANSLATION_RANGE_ZYX:
+    - 0
+    - 32
+    - 32
+
+MODEL:
+  NAME: 'StructSegModel'
+  GENERATOR:
+    NAME: 'UNet_MONAI'
+    DIMENSIONS: 3
+    INPUT_CHANNELS: 1
+    OUTPUT_CHANNELS: 23
+    CHANNELS: (16, 32, 64, 128, 256)
+    STRIDES: (2, 2, 2, 2)
+    NUM_RES_UNITS: 2
+
+CRITERION:
+  PIXEL_WISE_LOSS_TYPE: 'ClassSpatialMaskedDiceLoss'
+
+TRAIN:
+  BATCHSIZE_PER_GPU: 1
+  TOTAL_ITERATION: 1e5
+  PRINT_FREQUENCY: 1.0
+  DISPLAY_FREQUENCY: 1000
+  CHECKPOINT: ''
+  OPTIMIZER: adam
+
+  # learning rate policy
+  LR_POLICY: 'MultiStepLR'
+  LR_FACTOR: 0.1
+  LR_STEP:
+    - 50000
+    - 75000
+  GENERATOR:
+    LR: 3e-4
+
+  # for adam
+  GAMMA1: 0.9
+  GAMMA2: 0.999
+
+VAL:
+  BATCHSIZE_PER_GPU: 1
+  EVALUATION_FREQUENCY: 1000
+  PRINT_FREQUENCY: 1.0
+  SHUFFLE: false
+  MODEL_FILE: ''
+
+TEST:
+  BATCHSIZE_PER_GPU: 1
+  IS_VOLUME_VISUALIZER: True
+  SHUFFLE: false
+  MODEL_FILE: ''

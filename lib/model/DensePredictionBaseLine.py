@@ -11,7 +11,7 @@ from easydict import EasyDict as edict
 
 # project
 from lib.model.base_model import BaseModel
-from lib.model.utils.networks import define_generator
+from lib.model.module.networks import define_generator
 
 logger = logging.getLogger(__name__)
 
@@ -65,5 +65,4 @@ def get_model(cfg, is_train=True):
                                     scheduler_option=scheduler_option,
                                     cfg=cfg,
                                     is_train=is_train)
-
     return model

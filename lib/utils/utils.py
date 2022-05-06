@@ -37,7 +37,7 @@ def save_checkpoint(states, indicator_dict, output_dir,
                    os.path.join(output_dir, 'model_best.pth.tar'))
 
 
-def create_logger(cfg, cfg_name, phase='train'):
+def create_logger(cfg, cfg_name):
     root_output_dir = Path(cfg.OUTPUT_DIR)
     # set up logger
     if not root_output_dir.exists():
@@ -51,23 +51,18 @@ def create_logger(cfg, cfg_name, phase='train'):
     final_output_dir = root_output_dir / dataset / cfg_name / time_str
     print('=> creating {}'.format(final_output_dir))
     final_output_dir.mkdir(parents=True, exist_ok=True)
-    
-    if phase == 'train':
-        final_output_dir_train = final_output_dir / "train"
-        final_output_dir_val = final_output_dir / "val"
-        final_output_dir_volume = final_output_dir / "volume"
 
-        final_output_dir_train.mkdir(parents=True, exist_ok=True)
-        final_output_dir_val.mkdir(parents=True, exist_ok=True)
-        final_output_dir_volume.mkdir(parents=True, exist_ok=True)
-    elif phase == 'test':
-        final_output_dir_test = final_output_dir / "test"
-        final_output_dir_volume = final_output_dir / "volume"
+    # setup the output folder
+    final_output_dir_train = final_output_dir / "train"
+    final_output_dir_val = final_output_dir / "val"
+    final_output_dir_test = final_output_dir / "test"
 
-        final_output_dir_test.mkdir(parents=True, exist_ok=True)
-        final_output_dir_volume.mkdir(parents=True, exist_ok=True)
+    final_output_dir_train.mkdir(parents=True, exist_ok=True)
+    final_output_dir_val.mkdir(parents=True, exist_ok=True)
+    final_output_dir_test.mkdir(parents=True, exist_ok=True)
 
-    log_file = '{}_{}_{}.log'.format(cfg_name, time_str, phase)
+    # create log file
+    log_file = '{}_{}.log'.format(cfg_name, time_str)
     final_log_file = final_output_dir / log_file
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(filename=str(final_log_file),
@@ -77,12 +72,16 @@ def create_logger(cfg, cfg_name, phase='train'):
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
 
-    tensorboard_log_dir = Path(cfg.LOG_DIR) / dataset / cfg_name / time_str
-
+    tensorboard_log_dir = root_output_dir / dataset / cfg_name / time_str / 'tensorboard_log'
     print('=> creating {}'.format(tensorboard_log_dir))
     tensorboard_log_dir.mkdir(parents=True, exist_ok=True)
 
-    return logger, str(final_output_dir), str(tensorboard_log_dir)
+    # create folder to save key files for result reproducibility
+    key_files_dir = root_output_dir / dataset / cfg_name / time_str / 'key_files'
+    print('=> creating {}'.format(key_files_dir))
+    key_files_dir.mkdir(parents=True, exist_ok=True)
+
+    return logger, str(final_output_dir), str(tensorboard_log_dir), str(key_files_dir)
 
 
 class AverageMeter(object):
@@ -93,15 +92,20 @@ class AverageMeter(object):
 
     def reset(self):
         self.val = 0
+        self.history = []
+        self.total_avg = 0
         self.avg = 0
-        self.sum = 0
-        self.count = 0
 
-    def update(self, val, n=1):
+    def update(self, val):
         self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count if self.count != 0 else 0
+        self.history.append(self.val)
+        if isinstance(self.val, (np.ndarray, np.generic)):
+            np_history = np.concatenate(self.history)
+            self.avg = np.nanmean(np_history, axis=0)
+            self.total_avg = np.nanmean(np_history)
+        else:
+            self.avg = np.nanmean(self.history)
+            self.total_avg = self.avg
 
 
 def accuracy(output, target, topk=(1,)):

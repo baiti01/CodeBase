@@ -2,6 +2,10 @@
 .idea
 log
 output
+*bin
+trained_model
+.nfs*
+data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -19,6 +23,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib64/
 parts/
 sdist/
 var/

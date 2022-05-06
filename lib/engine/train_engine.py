@@ -5,6 +5,7 @@
 # DATETIME: 8/12/2019 3:43 PM
 
 # sys
+import logging
 import os
 import time
 
@@ -34,10 +35,11 @@ def do_train(train_loader,
 
         # validation
         if indicator_dict['current_iteration'] % cfg.VAL.EVALUATION_FREQUENCY == 0:
-            indicator_dict['current_performance'] = do_validate(val_loader, model, cfg, visualize, writer_dict,
-                                                                final_output_dir)
+            if True:
+                indicator_dict['current_performance'] = do_validate(val_loader, model, cfg, visualize, writer_dict,
+                                                                    final_output_dir)
             indicator_dict['is_best'] = False
-            if indicator_dict['current_performance'] < indicator_dict['best_performance']:
+            if indicator_dict['current_performance'] > indicator_dict['best_performance']:
                 indicator_dict['best_performance'] = indicator_dict['current_performance']
                 indicator_dict['is_best'] = True
 
@@ -51,16 +53,18 @@ def do_train(train_loader,
                 output_dictionary['generator'] = model.generator.state_dict()
                 output_dictionary['optimizer_generator'] = model.optimizer_generator.state_dict()
 
-            if hasattr(model, 'discriminator'):
-                output_dictionary['discriminator'] = model.discriminator.state_dict()
-                output_dictionary['optimizer_discriminator'] = model.optimizer_discriminator.state_dict()
-
             save_checkpoint(output_dictionary, indicator_dict, final_output_dir)
             model.train()
 
         # train
-        model.set_dataset(current_data)
-        model.optimize_parameters()
+        is_success = model.set_dataset(current_data)
+        if is_success == -1:
+            logging.info('Failed to setup current training sample: {}.'
+                         'Go to next one ...'.format(current_data['path'][0]))
+
+        is_success = model.optimize_parameters()
+        if is_success == -1:
+            logging.info('Failed to update the model parameters: {}. Go to next one ...'.format(current_data['path'][0]))
 
         # visualize
         if indicator_dict['current_iteration'] % cfg.TRAIN.DISPLAY_FREQUENCY == 0 and cfg.IS_VISUALIZE:

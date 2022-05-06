@@ -24,6 +24,7 @@ class BaseModel(nn.Module):
         super(BaseModel, self).__init__()
         self.is_train = is_train
         self.losses_train = AverageMeter()
+        self.losses_val = AverageMeter()
 
     def _create_optimize_engine(self, optimizer_option, criterion_option, scheduler_option):
         self.optimizers = []
@@ -65,6 +66,18 @@ class BaseModel(nn.Module):
                     self.criterion_pixel_wise_loss = torch.nn.MSELoss()
                 elif criterion_option.pixel_wise_loss_type == 'L1':
                     self.criterion_pixel_wise_loss = torch.nn.L1Loss()
+                elif criterion_option.pixel_wise_loss_type == 'ClassSpatialMaskedDiceLoss':
+                    from lib.model.loss.ClassSpatialMaskedLoss import ClassSpatialMaskedDiceLoss
+                    self.criterion_pixel_wise_loss = ClassSpatialMaskedDiceLoss(include_background=False, sigmoid=False, to_onehot_y=False)
+                elif criterion_option.pixel_wise_loss_type == 'DiceLoss':
+                    from monai.losses import DiceLoss
+                    self.criterion_pixel_wise_loss = DiceLoss(include_background=False, softmax=True, to_onehot_y=True)
+                elif criterion_option.pixel_wise_loss_type == 'DiceCELoss':
+                    from monai.losses import DiceCELoss
+                    self.criterion_pixel_wise_loss = DiceCELoss(include_background=False, to_onehot_y=True, softmax=True)
+                elif criterion_option.pixel_wise_loss_type == 'DiceFocalLoss':
+                    from monai.losses import DiceFocalLoss
+                    self.criterion_pixel_wise_loss = DiceFocalLoss(include_background=False, to_onehot_y=True, softmax=True)
                 else:
                     raise "Loss type {} is not implemented yet!".format(criterion_option.pixle_wise_loss_type)
 
@@ -137,6 +150,7 @@ class BaseModel(nn.Module):
     def set_dataset(self, input):
         self.input = input['input']
         self.target = input['target']
+        self.data_path = input['path']
         if torch.cuda.is_available():
             self.input = self.input.cuda()
             self.target = self.target.cuda()

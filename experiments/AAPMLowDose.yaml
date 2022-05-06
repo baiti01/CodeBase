@@ -1,7 +1,7 @@
 AUTO_RESUME: True
-WORKERS: 8
+WORKERS: 0
 OUTPUT_DIR: 'output'
-LOG_DIR: 'log'
+IS_VISUALIZE: true
 
 CUDNN:
   BENCHMARK: true
@@ -10,34 +10,58 @@ CUDNN:
 
 DATASET:
   NAME: 'AAPMLowDose'
-  ROOT: 'D:\share\data\Challenge\LowDoseChanllenge\numpy'
-  TRAIN_LIST: 'train.list'
-  VAL_LIST: 'val.list'
-  TEST_LIST: 'val.list'
+  ROOT: 'D:\data\1_Challenge\LowDoseChanllenge\Train\sharps'
+  #ROOT: './data'
+  TRAIN_LIST: 'train.txt'
+  VAL_LIST: 'val.txt'
+  TEST_LIST: 'val.txt'
+  TARGET_SIZE:
+    - 64
+    - 256
+    - 256
+  RESOLUTION:
+    - 3.0
+    - 1.17
+    - 1.17
+
+  DATA_AUGMENTATION_PROB: 1.0
+  ROTATION_DEGREE_ANGLE_ZYX:
+    - 9
+    - 0.0
+    - 0.0
+  SHEAR_RANGE_ZYX:
+    - 0
+    - 0
+    - 0.1
+    - 0.1
+    - 0.1
+    - 0.1
+  SCALE_RANGE_ZYX:
+    - 0
+    - 0.2
+    - 0.2
+  TRANSLATION_RANGE_ZYX:
+    - 0
+    - 32
+    - 32
 
 MODEL:
   NAME: 'DensePredictionBaseLine'
   GENERATOR:
-    NAME: 'UNet'
+    NAME: 'UNet_MONAI'
+    DIMENSIONS: 3
     INPUT_CHANNELS: 1
     OUTPUT_CHANNELS: 1
-    DOWNSAMPLING_NUMBER: 9
-    FILTER_NUMBER_LAST_CONV_LAYER: 64
-    DIMENSION: '2d'
-    INPUT_SIZE:
-      - 512
-      - 512
-    SHIFT_SIZE:
-      - 16
-      - 16
-    NORMALIZATION_TYPE: 'instance'
+    CHANNELS: (16, 32, 64, 128, 256)
+    STRIDES: (2, 2, 2, 2)
+    NUM_RES_UNITS: 2
 
 CRITERION:
   PIXEL_WISE_LOSS_TYPE: 'mse'
 
 TRAIN:
   BATCHSIZE_PER_GPU: 1
-  TOTAL_ITERATION: 2e5
+  TOTAL_ITERATION: 1e5
   PRINT_FREQUENCY: 1.0
   DISPLAY_FREQUENCY: 1000
   CHECKPOINT: ''
@@ -47,10 +71,10 @@ TRAIN:
   LR_POLICY: 'MultiStepLR'
   LR_FACTOR: 0.1
   LR_STEP:
-    - 100000
-    - 150000
+    - 50000
+    - 75000
   GENERATOR:
-    LR: 1e-4
+    LR: 3e-4
 
   # for adam
   GAMMA1: 0.9

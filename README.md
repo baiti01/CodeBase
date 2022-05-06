@@ -1,11 +1,6 @@
-# CodeBase
-This repository is used to provide an out-of-box base code for PyTorch-based training framework.
+# This repository is used to provide a base code for PyTorch-based training framework. One can easily develop their own model on top of it.
+1. Some dirty codes are still there without debugging. 
+2. UNet-based denoising/segmentation examples are used demos based on two open-access datasets
+   1. Denoising: **[AAPM LowDose CT Challenge dataset](https://www.aapm.org/grandchallenge/lowdosect/)**
+   2. Segmentation: **[StructSeg segmentation dataset](https://structseg2019.grand-challenge.org/)**. 
 
-
-1: Some dirty codes are still there without debugging.
-
-
-2: A UNet-based denoising example is used a demo, where the AAPM LowDose CT Challenge dataset is used. 
-
-
-3: Didn't make too much efforts on the model part since this is user-specific.

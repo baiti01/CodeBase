@@ -6,7 +6,6 @@
 
 # sys
 import time
-import logging
 import os
 import random
 
@@ -15,8 +14,6 @@ import torch
 
 # project
 from lib.utils.utils import AverageMeter
-
-logger = logging.getLogger(__name__)
 
 
 def do_validate(val_loader,
@@ -31,7 +28,11 @@ def do_validate(val_loader,
 
     selected_visualized_data = random.randint(0, len(val_loader) - 1)
     for i, current_data in enumerate(val_loader):
-        model.set_dataset(current_data)
+        is_success = model.set_dataset(current_data)
+        if is_success == -1:
+            continue
+
+        model.input.require_grad = False
 
         with torch.no_grad():
             model.forward()

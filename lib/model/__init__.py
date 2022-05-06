@@ -7,3 +7,4 @@
 
 from lib.model import DensePredictionBaseLine
 from lib.model import ClassificationBaseLine
+from lib.model import StructSegModel

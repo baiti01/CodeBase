@@ -12,6 +12,9 @@ import functools
 import torch
 import torch.nn as nn
 
+# project
+from lib.model.module.modules import pixel_shuffle, pixel_unshuffle
+
 
 def net_dimension(dimension='2d'):
     if dimension == '2d':
@@ -53,14 +56,13 @@ def get_norm_layer(norm_type='instance', dimension='2d'):
 
 
 class UnetGenerator(nn.Module):
-    """Create a Unet-based generator"""
-
-    def __init__(self, input_channels,
+    def __init__(self,
+                 input_channels,
                  output_channels,
                  downsampling_number,
                  filter_number_last_conv_layer=64,
-                 norm_layer='batch',
-                 dimension='2d'):
+                 norm_layer='instance',
+                 dimension='3d'):
         super(UnetGenerator, self).__init__()
         # construct unet structure
         norm_layer = get_norm_layer(norm_layer, dimension)
@@ -108,23 +110,41 @@ class UnetGenerator(nn.Module):
                                              norm_layer=norm_layer)  # add the outermost layer
 
     def forward(self, input):
-        return self.model(input)
+        input = pixel_unshuffle(input)
+        input = self.model(input)
+        input = pixel_shuffle(input)
+        return input
+
+
+def conv_layer_separable(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True):
+    modules = []
+    modules.append(nn.Conv3d(in_channels=in_channels,
+                             out_channels=out_channels,
+                             kernel_size=(1, kernel_size, kernel_size),
+                             stride=(1, stride, stride),
+                             padding=(0, padding, padding),
+                             bias=bias))
+    modules.append(nn.ReLU())
+    modules.append(nn.Conv3d(in_channels=out_channels,
+                             out_channels=out_channels,
+                             kernel_size=(kernel_size, 1, 1),
+                             stride=(stride, 1, 1),
+                             padding=(padding, 0, 0),
+                             bias=bias))
+    #modules.append(nn.ReLU(inplace=True))
+    return nn.Sequential(*modules)
 
 
 class UnetSkipConnectionBlock(nn.Module):
-    """Defines the Unet submodule with skip connection.
-        X -------------------identity----------------------
-        |-- downsampling -- |submodule| -- upsampling --|
-    """
-
-    def __init__(self, outer_channels,
+    def __init__(self,
+                 outer_channels,
                  inner_channels,
-                 dimension='2d',
+                 dimension='3d',
                  input_channels=None,
                  submodule=None,
                  outermost=False,
                  innermost=False,
-                 norm_layer=nn.BatchNorm2d):
+                 norm_layer=nn.InstanceNorm3d):
         super(UnetSkipConnectionBlock, self).__init__()
 
         self.outermost = outermost
@@ -134,12 +154,15 @@ class UnetSkipConnectionBlock(nn.Module):
         if input_channels is None:
             input_channels = outer_channels
 
-        conv_layer, upsampling_mode = net_dimension(dimension)
-        conv_layer_no_norm, _ = net_dimension(dimension)
+        _, upsampling_mode = net_dimension(dimension)
+
+        # ###
+        conv_layer = conv_layer_separable
+        conv_layer_no_norm = conv_layer_separable
 
         downconv = conv_layer(input_channels, inner_channels, kernel_size=3, stride=2, padding=1, bias=is_bias)
         downconv_no_norm = conv_layer_no_norm(input_channels, inner_channels, kernel_size=3, stride=2, padding=1, bias=True)
-        downrelu = nn.LeakyReLU(0.2, True)
+        downrelu = nn.ReLU(True)
         downnorm = norm_layer(inner_channels)
         uprelu = nn.ReLU(True)
         upnorm = norm_layer(outer_channels)
@@ -177,4 +200,17 @@ class UnetSkipConnectionBlock(nn.Module):
 
 
 if __name__ == '__main__':
+    import time
+    model = UnetGenerator(input_channels=8, output_channels=8, downsampling_number=5, dimension='3d')
+    print(model)
+    model = model.to('cuda')
+    input = torch.randn((1, 1, 64, 256, 256)).to('cuda')
+    for i in range(10):
+        output = model(input)
+
+    t1 = time.time()
+    for i in range(50):
+        output = model(input)
+    t2 = time.time()
+    print('Average time per one forward: {}'.format((t2 - t1)/50))
     print('Congrats! May the force be with you ...')
